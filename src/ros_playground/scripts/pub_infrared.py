@@ -6,39 +6,47 @@ import signal
 from ros_playground.msg import Infrared
 from PyMata.pymata import PyMata
 
-INFRARED_ANALOG_PIN = 0
+RIGHT_INFRARED_ANALOG_PIN = 0
+LEFT_INFRARED_ANALOG_PIN = 1
+CENTER_INFRARED_ANALOG_PIN = 2
 
 board = PyMata("/dev/ttyS0", verbose=True)
-infrared_value = 0
 
-def get_infrared_value():
-    global infrared_value
-    return infrared_value
-
-def set_infrared_value(value):
-    global infrared_value
-    infrared_value = value
 
 def signal_handler(sig, frame):
     if board is not None:
         board.reset()
     sys.exit(0)
 
-def read_infrared_value(data):
-    #print "infrared value :  %s" % (data[2])
-    set_infrared_value(data[2])
 
 def pub_infrared_value():
     signal.signal(signal.SIGINT, signal_handler)
-    board.set_pin_mode(INFRARED_ANALOG_PIN, board.INPUT, board.ANALOG, read_infrared_value)
+
+    board.set_pin_mode(RIGHT_INFRARED_ANALOG_PIN, 
+                       board.INPUT, 
+                       board.ANALOG) 
+    board.set_pin_mode(CENTER_INFRARED_ANALOG_PIN,
+                       board.INPUT,
+                       board.ANALOG)
+    board.set_pin_mode(LEFT_INFRARED_ANALOG_PIN,
+                       board.INPUT,
+                       board.ANALOG)
+    
     pub = rospy.Publisher('chatter', Infrared, queue_size=10)
+    
     rospy.init_node('infrared', anonymous=True)
     r = rospy.Rate(2)
+    
     while not rospy.is_shutdown():
-        str = "Infrared value: %s" % (infrared_value)
-        rospy.loginfo(str)
+        right_value = board.analog_read(RIGHT_INFRARED_ANALOG_PIN)
+        center_value = board.analog_read(CENTER_INFRARED_ANALOG_PIN)
+        left_value = board.analog_read(LEFT_INFRARED_ANALOG_PIN)
         infrared = Infrared()
-        infrared.value = infrared_value
+        infrared.right_value = right_value
+        infrared.center_value = center_value
+        infrared.left_value = left_value
+        str = "Infrared right: %s, center: %s, left: %s" % (infrared.right_value, infrared.center_value, infrared.left_value) 
+        rospy.loginfo(str)
         pub.publish(infrared)
         r.sleep()
 
