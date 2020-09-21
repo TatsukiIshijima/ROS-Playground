@@ -6,6 +6,9 @@ import signal
 from ros_playground.msg import Infrared
 from PyMata.pymata import PyMata
 
+INFRARED_TOPIC = "Infrared"
+INFRARED_PUB_NODE = "Infrared_Pub_Node"
+
 RIGHT_INFRARED_ANALOG_PIN = 0
 LEFT_INFRARED_ANALOG_PIN = 1
 CENTER_INFRARED_ANALOG_PIN = 2
@@ -32,9 +35,8 @@ def pub_infrared_value():
                        board.INPUT,
                        board.ANALOG)
     
-    pub = rospy.Publisher('chatter', Infrared, queue_size=10)
-    
-    rospy.init_node('infrared', anonymous=True)
+    rospy.init_node(INFRARED_PUB_NODE, anonymous=True)
+    pub = rospy.Publisher(INFRARED_TOPIC, Infrared, queue_size=10)
     r = rospy.Rate(2)
     
     while not rospy.is_shutdown():
@@ -45,8 +47,8 @@ def pub_infrared_value():
         infrared.right_value = right_value
         infrared.center_value = center_value
         infrared.left_value = left_value
-        str = "Infrared right: %s, center: %s, left: %s" % (infrared.right_value, infrared.center_value, infrared.left_value) 
-        rospy.loginfo(str)
+#        str = "Infrared right: %s, center: %s, left: %s" % (infrared.right_value, infrared.center_value, infrared.left_value) 
+#        rospy.loginfo(str)
         pub.publish(infrared)
         r.sleep()
 
