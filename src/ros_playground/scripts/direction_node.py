@@ -5,7 +5,7 @@ from ros_playground.msg import Infrared
 from ros_playground.msg import Direction
 
 
-INFRARED_TOPIC = "Infrared"
+INFRARED_TOPIC = "Infrared_Topic"
 
 DIRECTION_TOPIC = "Direction_Topic"
 DIRECTION_NODE = "Direction_Node"
@@ -14,7 +14,7 @@ DIRECTION_NODE = "Direction_Node"
 class DirectionNode():
     def __init__(self):
         rospy.init_node(DIRECTION_NODE, anonymous=True)
-        self.direction_pub = rospy.Publisher(DIRECTION_TOPIC,
+        self.__direction_pub = rospy.Publisher(DIRECTION_TOPIC,
                                              Direction,
                                              queue_size=10)
     
@@ -49,7 +49,7 @@ class DirectionNode():
             else:
                 direction.value = 74
 
-        self.direction_pub.publish(direction)
+        self.__direction_pub.publish(direction)
 
 
 if __name__ == '__main__':

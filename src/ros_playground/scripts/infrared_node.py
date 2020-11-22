@@ -6,56 +6,59 @@ import signal
 from ros_playground.msg import Infrared
 from PyMata.pymata import PyMata
 
-INFRARED_TOPIC = "Infrared"
-INFRARED_PUB_NODE = "Infrared_Pub_Node"
+INFRARED_TOPIC = "Infrared_Topic"
+INFRARED_NODE = "Infrared_Node"
 
 RIGHT_INFRARED_ANALOG_PIN = 0
 LEFT_INFRARED_ANALOG_PIN = 1
 CENTER_INFRARED_ANALOG_PIN = 2
 
-board = PyMata("/dev/ttyS0", verbose=True)
+
+class InfraredNode():
+    def __init__(self):
+        rospy.init_node(INFRARED_NODE, anonymous=True)
+        self.board = PyMata("/dev/ttyS0", verbose=True)
+        self.__infrared_pub = rospy.Publisher(INFRARED_TOPIC,
+                                            Infrared,
+                                            queue_size=10)
+
+    def __signal_handler(self, sig, frame):
+        if self.board is not None:
+            self.board.reset()
+        sys.exit(0)
 
 
-def signal_handler(sig, frame):
-    if board is not None:
-        board.reset()
-    sys.exit(0)
+    def publish_infrared(self):
+        signal.signal(signal.SIGINT, self.__signal_handler)
 
-
-def pub_infrared_value():
-    signal.signal(signal.SIGINT, signal_handler)
-
-    board.set_pin_mode(RIGHT_INFRARED_ANALOG_PIN, 
-                       board.INPUT, 
-                       board.ANALOG) 
-    board.set_pin_mode(CENTER_INFRARED_ANALOG_PIN,
-                       board.INPUT,
-                       board.ANALOG)
-    board.set_pin_mode(LEFT_INFRARED_ANALOG_PIN,
-                       board.INPUT,
-                       board.ANALOG)
+        self.board.set_pin_mode(RIGHT_INFRARED_ANALOG_PIN, 
+                                self.board.INPUT, 
+                                self.board.ANALOG) 
+        self.board.set_pin_mode(CENTER_INFRARED_ANALOG_PIN,
+                                self.board.INPUT,
+                                self.board.ANALOG)
+        self.board.set_pin_mode(LEFT_INFRARED_ANALOG_PIN,
+                                self.board.INPUT,
+                                self.board.ANALOG)
     
-    rospy.init_node(INFRARED_PUB_NODE, anonymous=True)
-    pub = rospy.Publisher(INFRARED_TOPIC, Infrared, queue_size=10)
-    r = rospy.Rate(2)
+        r = rospy.Rate(2)
     
-    while not rospy.is_shutdown():
-        right_value = board.analog_read(RIGHT_INFRARED_ANALOG_PIN)
-        center_value = board.analog_read(CENTER_INFRARED_ANALOG_PIN)
-        left_value = board.analog_read(LEFT_INFRARED_ANALOG_PIN)
-        infrared = Infrared()
-        infrared.right_value = right_value
-        infrared.center_value = center_value
-        infrared.left_value = left_value
-#        str = "Infrared right: %s, center: %s, left: %s" % (infrared.right_value, infrared.center_value, infrared.left_value) 
-#        rospy.loginfo(str)
-        pub.publish(infrared)
-        r.sleep()
+        while not rospy.is_shutdown():
+            right_value = self.board.analog_read(RIGHT_INFRARED_ANALOG_PIN)
+            center_value = self.board.analog_read(CENTER_INFRARED_ANALOG_PIN)
+            left_value = self. board.analog_read(LEFT_INFRARED_ANALOG_PIN)
+            infrared = Infrared()
+            infrared.right_value = right_value
+            infrared.center_value = center_value
+            infrared.left_value = left_value
+            self.__infrared_pub.publish(infrared)
+            r.sleep()
+
 
 if __name__ == '__main__':
+    infrared_node = InfraredNode()
     try:
-        pub_infrared_value()
+        infrared_node.publish_infrared()
     except rospy.ROSInterruptException:
-        if board is not None:
-            board.reset()
-
+        if infrared_node.board is not None:
+            infrared_node.board.reset()
