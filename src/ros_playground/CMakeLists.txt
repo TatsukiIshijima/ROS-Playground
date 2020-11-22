@@ -54,6 +54,7 @@ add_message_files(
 #   Message2.msg
   Playground.msg
   Infrared.msg
+  Direction.msg
 )
 
 ## Generate services in the 'srv' folder
