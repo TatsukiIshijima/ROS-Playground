@@ -124,3 +124,7 @@ for x in range(10):
 
 board.close()
 ```
+
+### その他
+image_subscriber.py は動画を受信して表示するサンプル。
+detectnet_processor.py は Jetson Nano での jetson-inference の detectNet（物体検出）を受信した動画に対して行うサンプル。このサンプルは Jetson Nano 環境が必要になる。
